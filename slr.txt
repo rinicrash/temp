@@ -1,0 +1,254 @@
+from collections import defaultdict
+
+prod=defaultdict(list)
+start_symbol=""
+terminals=[]
+non_terminals=[]
+aug_gram=""
+states=defaultdict(list)
+first_dict=defaultdict(list)
+follow_dict=defaultdict(list)
+goto_table=defaultdict(dict)
+slr_table=defaultdict(dict)
+first_episolon_flag=0
+first_local_episolon_flag=0
+
+def find_indirect_production(nonterm,prod_nonterm,visited):
+  global first_episolon_flag
+  global first_local_episolon_flag
+  for production in prod[prod_nonterm]:
+    if production[0] =="e":
+       if production[0] not in first_dict[nonterm]:
+          first_dict[nonterm].append(production[0])
+       first_episolon_flag =1
+       first_local_episolon_flag=1
+       return
+    if production[0] in terminals and production[0] not in first_dict[nonterm]:
+          first_dict[nonterm].append(production[0])
+    elif production[0] in non_terminals:
+          if production[0] not in visited:
+            visited.append(production[0])
+            first_local_episolon_flag=0
+            find_indirect_production(nonterm,production[0],visited)
+            j=1
+            while j<len(production) and first_local_episolon_flag==1:
+                first_local_episolon_flag=0
+                new_nonterm=production[j]
+                j+=1
+                while j<len(production) and production[j]=="D":
+                  new_nonterm+=production[j]
+                  j+=1
+                visited.append(new_nonterm)
+                find_indirect_production(nonterm,new_nonterm,visited)
+
+
+def first():
+    global first_episolon_flag
+    for nonterm in prod:
+      for production in prod[nonterm]:
+        if production[0] in terminals and production[0] not in first_dict[nonterm]:
+          first_dict[nonterm].append(production[0])
+        elif production[0] in non_terminals:
+          visited=[production[0]]
+          first_episolon_flag =0
+          find_indirect_production(nonterm,production[0],visited)
+          i=1
+          while i<len(production) and first_episolon_flag==1:
+            first_episolon_flag =0
+            new_nonterm=production[i]
+            i+=1
+            while i<len(production) and production[i]=="D":
+                new_nonterm+=production[i]
+                i+=1
+            visited.append(new_nonterm)
+            find_indirect_production(nonterm,new_nonterm,visited)
+
+def follow():
+   append_at_last=[]
+   follow_dict[start_symbol].append("$")
+   for nonterm in prod:
+      for production in prod[nonterm]:
+          i=0
+          while i<len(production):
+            new_symbol=production[i]
+            i+=1
+            while i<len(production) and production[i]=="d":
+                new_symbol+=production[i]
+                i+=1
+            if new_symbol in non_terminals:
+               if i<len(production):
+                if production[i] in terminals and production[i] not in follow_dict[new_symbol]:
+                  follow_dict[new_symbol].append(production[i])
+                else:
+                  prev_i=i
+                  new_nonterm=production[i]
+                  i+=1
+                  while i<len(production) and production[i]=="D":
+                      new_nonterm+=production[i]
+                      i+=1
+                  i=prev_i
+                  follow_i=first_dict[new_nonterm]
+                  for first_term in follow_i:
+                    if first_term !='e' and first_term not in follow_dict[new_symbol]:
+                        follow_dict[new_symbol].append(first_term)
+                    if first_term == "e":
+                      append_at_last.append((new_symbol,nonterm))
+
+               if i == len(production):
+                append_at_last.append((new_symbol,nonterm))
+   for new_symbol,nonterm in append_at_last:
+        follow_nonterm=follow_dict[nonterm]
+        for first_term in follow_nonterm:
+            if first_term !='e' and first_term not in follow_dict[new_symbol]:
+                follow_dict[new_symbol].append(first_term)
+
+def closure(productions):
+  set_i=[]
+  for production in productions:
+    set_i.append(production)
+  i=0
+  while i < len(set_i):
+      production=set_i[i]
+      i+=1
+      splitted=production.split("->")
+      rhs=splitted[1]
+      if "." in rhs:
+        dot_index=rhs.index(".")
+        if production not in set_i:
+          set_i.append(production)
+        if dot_index+1 < len(rhs) and rhs[dot_index+1] in non_terminals:
+          nonterm=rhs[dot_index+1]
+          for prod_rhs in prod[nonterm]:
+            prod_new=nonterm+"->."+prod_rhs
+            if prod_new not in set_i:
+              set_i.append(prod_new)
+
+  return set_i
+
+def goto(item,gram_symbol):
+    productions=[]
+    for production in item:
+       splitted=production.split("->")
+       rhs=splitted[1]
+       if "." in rhs:
+         dot_index=rhs.index(".")
+         if dot_index+1 < len(rhs) and rhs[dot_index+1]==gram_symbol:
+            new_production=production.replace("."+gram_symbol,gram_symbol+".")
+            productions.append(new_production)
+    if len(productions)>0:
+      return closure(productions)
+    return productions
+
+def lritems():
+  aug_gram_start=aug_gram.replace("->","->.")
+  c=closure([aug_gram_start])
+  states["0"]=c
+  i=0
+  while i < len(states.keys()):
+      item = states[str(i)]
+      for nonterm in non_terminals:
+        goto_list=goto(item,nonterm)
+        goto_table[str(i)][nonterm]="-"
+        if len(goto_list)>0 and  goto_list not in list(states.values()):
+          state_no=len(states.keys())
+          states[str(state_no)]=goto_list
+        if len(goto_list)>0:
+          state_no_goto_list=str(list(states.values()).index(goto_list))
+          print("goto(",str(i),",",nonterm,")  ---------  ",state_no_goto_list," ----- ",goto_list)
+          goto_table[str(i)][nonterm]=state_no_goto_list
+      for term in terminals:
+        goto_list=goto(item,term)
+        goto_table[str(i)][term]="-"
+        if len(goto_list)>0 and  goto_list not in list(states.values()):
+          state_no=len(states.keys())
+          states[str(state_no)]=goto_list
+        if len(goto_list)>0:
+          state_no_goto_list=str(list(states.values()).index(goto_list))
+          print("goto(",str(i),",",term,")  ---------  ",state_no_goto_list," ----- ",goto_list)
+          goto_table[str(i)][term]=state_no_goto_list
+      i+=1
+  print("\n\n\n\n")
+  for state in states:
+    print(state,"---------",states[state])
+
+def find_slr_table():
+    for state in states:
+      for i in terminals:
+        slr_table[state][i]="-"
+      slr_table[state]["$"]="-"
+      for i in non_terminals:
+        slr_table[state][i]="-"
+      for item in states[state]:
+          splitted=item.split("->")
+          lhs=splitted[0]
+          rhs=splitted[1]
+          if "." in rhs:
+            dot_index=rhs.index(".")
+            if dot_index+1 < len(rhs):
+               if rhs[dot_index+1] in non_terminals:
+                  nonterm=rhs[dot_index+1]
+                  slr_table[state][nonterm] = goto_table[state][nonterm]
+               elif rhs[dot_index+1] in terminals:
+                  term=rhs[dot_index+1]
+                  if goto_table[state][term]:
+                    slr_table[state][term] ="Shift:"+goto_table[state][term]
+                  else:
+                    slr_table[state][term]=goto_table[state][term]
+            if dot_index+1==len(rhs):
+              if item == aug_gram+".":
+                slr_table[state]["$"]="ACCEPT"
+              else:
+                for follow in follow_dict[lhs]:
+                  slr_table[state][follow]="Reduce:"+item.replace(".","")
+
+file = open("grammar3.txt","r")
+
+for line in file:
+  stripped=line.strip()
+  if "start" in stripped:
+     splitted=stripped.split()
+     start_symbol=splitted[1]
+     start_dash=start_symbol+"D"
+     while start_dash in prod:
+        start_dash=start_dash+"D"
+     prod[start_dash]=start_symbol
+     aug_gram=start_dash+"->"+start_symbol
+     continue
+  if "terminals" in stripped:
+    splitted=stripped.split()
+    terminals=splitted[1:]
+    continue
+  splitted=stripped.split("->")
+  prod[splitted[0]].append(splitted[1])
+  if splitted[0] not in non_terminals:
+    non_terminals.append(splitted[0])
+
+print(terminals)
+print(non_terminals)
+print(prod)
+print("\n\n\n\n")
+lritems()
+first()
+print("\n\n\n\n")
+print("First")
+for nonterm in first_dict:
+  print(nonterm," --------- ",first_dict[nonterm])
+follow()
+print("\n\n\n\n")
+print("Follow")
+for nonterm in follow_dict:
+  print(nonterm," --------- ",follow_dict[nonterm])
+print("\n\n\n\n")
+find_slr_table()
+print("states",end=" ")
+for i in terminals:
+    print(i,end=" ")
+print("$",end=" ")
+for i in non_terminals:
+  print(i,end=" ")
+print("\n")
+for state in slr_table:
+  print(state,end="  ")
+  for action in slr_table[state]:
+    print(slr_table[state][action],end=" ")
+  print("\n")
