@@ -1,0 +1,7 @@
+fractals
+ccurve - cc.txt
+dragon - dragon.txt
+mandelbrot - mb.txt
+terrain - ter.txt
+turtle - turtle.txt
+julia - julia.txt
