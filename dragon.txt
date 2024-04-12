@@ -1,0 +1,13 @@
+import turtle
+
+def dragon_curve(turtle, order, length, direction):
+    if order == 0:
+        turtle.forward(length)
+    else:
+        dragon_curve(turtle, order - 1, length, 1)
+        turtle.right(90 * direction)
+        dragon_curve(turtle, order - 1, length, -1)
+
+turtle.speed(0)
+dragon_curve(turtle, 12, 10, 1)
+turtle.done()
