@@ -1,0 +1,343 @@
+
+Write a lex program to add line numbers to the given file and display the same in the
+output.
+
+%{
+        #include<stdio.h>
+        int line_no =1;
+%}
+
+line .*\n
+
+%%
+{line} { printf("%d %s",line_no++, yytext); }
+%%
+
+int main(int argc, char* argv[])
+{
+        extern FILE *yyin;
+        yyin=fopen(argv[2],"r");
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+Write a lex program to extract only comment lines from a C program and display the
+same on output.
+
+{
+        #include<stdio.h>
+%}
+
+comment \/\*.*\*\/
+
+%%
+{comment} {ECHO;}
+. ;
+%%
+
+int main(int argc, char* argv[])
+{
+        extern FILE *yyin;
+        yyin=fopen(argv[2],"r");
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+
+Write a lex program to replace sequence of blank spaces with a single blank space.
+%{
+        #include<stdio.h>
+%}
+        
+ws [ \t]+
+        
+%%
+
+{ws} { printf(" "); }
+. { ECHO; }
+        
+ 
+%%
+
+int main(int argc, char* argv[])
+{
+        extern FILE *yyin;
+        yyin=fopen(argv[2], "r");
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+Write a lex program to count the occurrence of a word “printf” in a C program.
+%{
+        #include<stdio.h>
+        int count=0;
+%}
+
+match printf
+
+%%
+{match} { count=count+1; }
+. ;
+%%
+
+int main(int argc, char* argv[])
+{
+        extern FILE * yyin;
+        yyin=fopen(argv[2],"r");
+        yylex();
+        printf("Count: %d ",count);
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+5. Write a lex program to remove all the occurrences of “printf” from a C program.
+%{
+        #include<stdio.h>
+%}
+
+match printf
+
+%%
+{match}
+. {ECHO;}
+%%
+
+int main(int argc, char* argv[])
+{
+        extern FILE *yyin;
+        yyin=fopen(argv[2],"r");
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+6. Write a lex program to extract all html tags in the given file.
+%{
+        #include<stdio.h>
+%}
+
+html <[^>]+>
+
+%%
+{html} { printf("%s\n",yytext); }
+. ;
+
+%%
+
+int main(int argc, char * argv[])
+{
+        extern FILE *yyin;
+        yyin=fopen(argv[2],"r");
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+7. Write a lex program to remove all html tags in the given file.
+%{
+        #include<stdio.h>
+%}
+
+html <[^>]+>
+
+%%
+
+{html}
+. {ECHO;}
+
+%%
+
+int main(int argc, char* argv[])
+{
+        extern FILE *yin;
+        yyin=fopen(argv[2],"r");
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+8. Write a lex program to check whether the given E-mail id is correct or not.
+/*program to find valid email address*/
+
+%{
+        #include<stdio.h>
+%}
+
+match [a-z.0-9]+@[a-z]+(\.ac\.in|\.com|\.in)
+
+%%
+
+{match}  {ECHO; printf("\nValid!");}
+. {ECHO;}
+%%
+
+int main() {
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+9. Write a lex program to check whether the given IP address is valid or not. Display the
+class to which it belongs.
+IP ADDRESS: It is a 32 bit address often written in 4 groups of 3 decimals each i.e.
+192.168.1.2 (An example of class C IP address)
+
+{
+        #include<stdio.h>
+%}
+
+/*192.168.1.2*/
+
+ip [0-9]{3}\.[0-9]{3}\.[0-9]{1,3}\.[0-9]{1,3}
+
+%%
+
+{ip} {ECHO;}
+. ;
+
+%%
+
+int main()
+{
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+10. Write a lex program to check whether the given MAC address is valid or not. Also
+extract the manufacturer of the device.
+MAC address is assigned to each network interface when it is manufactured.  It is a
+12 digit hexadecimal number.  The 6 leftmost digits are a prefix that identifies the
+manufacturer of the device. An example of a MAC address: DE-56-0A-DC-E6-88.
+
+/*MAC ADDRESS*/
+        
+         
+%{
+        #include<stdio.h>
+%}
+        
+mac [0-9.a-f.A-F]{2}\:[0-9.a-f.A-F]{2}\:[0-9.a-f.A-F]{2}\:[0-9.a-f.A-F]{2}\:[0-9.a-f.A-F]{2}\:[0-9.a-f.A-F]{2}
+                
+%%
+{mac} {
+        printf("MAC ADDRESS: %s\n",yytext);
+        char manufacturer[8];
+        int i;
+        for (i=0; i<8; i++)
+        { 
+                manufacturer[i]=yytext[i];
+        }
+        printf("Manufacturer: ");
+        for(i=0;i<8;i++)
+        {   
+                printf("%c",manufacturer[i]);
+        }
+        printf("\n");
+}
+. ;
+%%
+        
+int main()
+{
+        yylex();
+}
+        
+int yywrap()
+{
+        return 1;
+}
+
+11. Write a lex program to count the number of integers and the number of floating point
+numbers in an input file.
+
+%{
+        #include<stdio.h>
+        int integer_count=0;
+        int float_count=0;
+%}
+
+int [0-9]+
+float [0-9]+\.[0-9]+
+
+%%
+{int} {integer_count++;}
+{float} {float_count++;}
+%%
+
+
+int main(int argc, char* argv[])
+{
+        extern FILE *yyin;
+        yyin=fopen(argv[2],"r");
+        yylex();
+        printf("Integer count:%d\n", integer_count);
+        printf("Float count:%d\n", float_count);
+}
+
+int yywrap()
+{ 
+        return 1;
+}
+
+13. Write a lex program to recognize identifiers and keywords for C.
+%{
+        #include<stdio.h>
+
+%}
+
+comment \/\*[.\n]*\*\/
+
+%%
+
+{comment} {ECHO;}
+. ;
+
+%%
+
+int main(int argc, char* argv[])
+{
+        extern FILE *yyin;
+        yyin=fopen(argv[2], "r");
+        yylex();
+}
+
+int yywrap()
+{
+        return 1;
+}
+
+
+
+
+
