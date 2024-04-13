@@ -19,3 +19,6 @@ sharpening - sharp.txt
 transformation 
 log transformation - logt.txt
 powerlaw transformation - power.txt
+snowflake.txt
+house.cpp
+proj.cpp
