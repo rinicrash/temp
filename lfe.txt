@@ -1,0 +1,15 @@
+import cv2
+
+def laplacian_edge_detection(image_path):
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    laplacian_edge = cv2.Laplacian(image, cv2.CV_64F)
+    threshold_value = 30
+    _, laplacian_edge_thresholded = cv2.threshold(laplacian_edge, threshold_value, 255, cv2.THRESH_BINARY)
+
+    return laplacian_edge_thresholded
+
+image_path = "img.png"
+laplacian_edges = laplacian_edge_detection(image_path)
+cv2.imshow("Laplacian Edges", laplacian_edges)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
