@@ -1,0 +1,15 @@
+import cv2
+import numpy as np
+
+def sharpen_image(image):
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    laplacian = cv2.Laplacian(gray_image, cv2.CV_64F)
+    laplacian_3channels = cv2.merge([laplacian, laplacian, laplacian])
+    sharpened_image = np.uint8(np.clip(image + laplacian_3channels, 0, 255))
+    return sharpened_image
+
+image = cv2.imread("img.png")
+sharpened_image = sharpen_image(image)
+cv2.imshow("Sharpened Image", sharpened_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
