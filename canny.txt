@@ -1,0 +1,13 @@
+import cv2
+
+def canny_edge_detection(image_path):
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    canny_edge = cv2.Canny(image, 0, 100)
+    cv2.Canny()
+    return canny_edge
+
+image_path = "img.png"
+canny_edges = canny_edge_detection(image_path)
+cv2.imshow("Canny Edges", canny_edges)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
