@@ -1,0 +1,54 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+def histogram_matching(image, reference_histogram):
+    # Compute the histogram of the input image
+    image_histogram = cv2.calcHist([image], [0], None, [256], [0, 256])
+    # Compute the cumulative distribution function (CDF) of the input image histogram
+    image_cdf = image_histogram.cumsum() / image_histogram.sum()
+    # Compute the cumulative distribution function (CDF) of the reference histogram
+    reference_cdf = reference_histogram.cumsum() / reference_histogram.sum()
+    # Perform histogram matching
+    matched_image = np.interp(image.flatten(), np.arange(256), np.uint8(255 * reference_cdf)).reshape(image.shape)
+    # Convert the matched image to 8-bit unsigned integer
+    matched_image = np.uint8(matched_image)
+    # Compute the histogram of the matched image
+    matched_histogram = cv2.calcHist([matched_image], [0], None, [256], [0, 256])
+    return matched_image, matched_histogram
+
+input_image = cv2.imread("img.png", cv2.IMREAD_GRAYSCALE)
+reference_image = cv2.imread("img2.jpg", cv2.IMREAD_GRAYSCALE)
+reference_histogram = cv2.calcHist([reference_image], [0], None, [256], [0, 256])
+matched_image, matched_histogram = histogram_matching(input_image, reference_histogram)
+plt.figure(figsize=(10, 6))
+plt.subplot(2, 3, 1)
+plt.imshow(input_image, cmap='gray')
+plt.title('Original Image')
+plt.axis('off')
+plt.subplot(2, 3, 2)
+plt.imshow(reference_image, cmap='gray')
+plt.title('Reference Image')
+plt.axis('off')
+plt.subplot(2, 3, 3)
+plt.imshow(matched_image, cmap='gray')
+plt.title('Matched Image')
+plt.axis('off')
+plt.subplot(2, 3, 4)
+plt.plot(reference_histogram, color='blue')
+plt.title('Reference Histogram')
+plt.xlabel('Intensity')
+plt.ylabel('Frequency')
+plt.subplot(2, 3, 5)
+plt.plot(cv2.calcHist([input_image], [0], None, [256], [0, 256]), color='green')
+plt.title('Input Histogram')
+plt.xlabel('Intensity')
+plt.ylabel('Frequency')
+plt.subplot(2, 3, 6)
+plt.plot(matched_histogram, color='red')
+plt.title('Matched Histogram')
+plt.xlabel('Intensity')
+plt.ylabel('Frequency')
+
+plt.tight_layout()
+plt.show()
