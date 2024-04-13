@@ -1,0 +1,17 @@
+import cv2
+
+def log_edge_detection(image_path):
+    image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    blurred_image = cv2.GaussianBlur(image, (3, 3), 0)
+    log_edge = cv2.Laplacian(blurred_image, cv2.CV_64F)
+    threshold_value = 20
+    _, log_edge_thresholded = cv2.threshold(log_edge, threshold_value, 255, cv2.THRESH_BINARY)
+
+    return log_edge_thresholded
+
+image_path = "img.png"
+log_edges = log_edge_detection(image_path)
+
+cv2.imshow("Laplacian of Gaussian Edges", log_edges)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
