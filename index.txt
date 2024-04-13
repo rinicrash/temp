@@ -5,3 +5,17 @@ mandelbrot - mb.txt
 terrain - ter.txt
 turtle - turtle.txt
 julia - julia.txt
+imagep roc
+canny - canny.txt
+all filters(mean, min, max, median) - filters.txt
+histogram equ - heq.txt
+histogram matching - hm.txt
+laplacian filter edge - lfe.txt
+log_edge_detection - log.txt
+sobel edge - sobel.txt
+prewitt edge - prewitt.txt
+sampling - sampling.txt
+sharpening - sharp.txt
+transformation 
+log transformation - logt.txt
+powerlaw transformation - power.txt
